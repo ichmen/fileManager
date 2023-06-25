@@ -3,7 +3,7 @@ import fs from "fs";
 import os from "os";
 import crypto from "crypto";
 import zlib from "zlib";
-// let homePath;
+import { pipeline } from "stream";
 Object.entries(process.env).forEach(([name, value]) => {
   if (name === "HOMEPATH") {
     console.log(value);
@@ -58,6 +58,9 @@ process.stdin.on("data", (data) => {
       break;
     case "compress":
       compressFile(inputData[1], inputData[2]);
+      break;
+    case "decompress":
+      decompressFile(inputData[1], inputData[2]);
       break;
     default:
       break;
@@ -254,12 +257,31 @@ function hashFile(filePath) {
   });
 }
 function compressFile(filePath, destination) {
+  console.log(filePath.split("\\").slice(-1));
+  const zippedFile = filePath.split("\\").slice(-1).toString().split(".")[0];
   const inputStream = fs.createReadStream(
     path.resolve(process.cwd(), filePath)
   );
   const zipStream = zlib.createBrotliCompress();
-  const outputStream = fs.createWriteStream(zippedFile);
+  const outputStream = fs.createWriteStream(
+    path.resolve(process.cwd(), destination, zippedFile + ".zip")
+  );
   pipeline(inputStream, zipStream, outputStream, (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+function decompressFile(fileName, decompressPath) {
+  const inputStream = fs.createReadStream(
+    path.resolve(process.cwd(), fileName)
+  );
+  const zipStream = zlib.createBrotliDecompress();
+  const ooutputStream = fs.createWriteStream(
+    path.resolve(process.cwd(), decompressPath)
+  );
+  pipeline(inputStream, zipStream, ooutputStream, (err) => {
     if (err) {
       console.log(err);
     }
