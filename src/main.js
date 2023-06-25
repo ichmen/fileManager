@@ -1,6 +1,9 @@
 import path from "path";
 import fs from "fs";
-let homePath;
+import os from "os";
+import crypto from "crypto";
+import zlib from "zlib";
+// let homePath;
 Object.entries(process.env).forEach(([name, value]) => {
   if (name === "HOMEPATH") {
     console.log(value);
@@ -31,7 +34,30 @@ process.stdin.on("data", (data) => {
       break;
     case "cat":
       printFile(inputData[1]);
-
+      break;
+    case "add":
+      addFile(inputData[1]);
+      break;
+    case "rn":
+      renameFile(inputData[1], inputData[2]);
+      break;
+    case "cp":
+      copyFile(inputData[1], inputData[2]);
+      break;
+    case "mv":
+      moveFile(inputData[1], inputData[2]);
+      break;
+    case "rm":
+      removeFile(inputData[1]);
+      break;
+    case "os":
+      osCommands(inputData[1]);
+      break;
+    case "hash":
+      hashFile(inputData[1]);
+      break;
+    case "compress":
+      compressFile(inputData[1], inputData[2]);
       break;
     default:
       break;
@@ -62,7 +88,7 @@ function changeDirectory(inputData) {
 }
 
 function exit() {
-  console.log(`Thank you for using File Manager, ${args}, goodbye!`);
+  console.log(`\nThank you for using File Manager, ${args}, goodbye!`);
   process.exit();
 }
 
@@ -89,7 +115,7 @@ function printLs(directories, files) {
     }
   });
   console.log(`\n${"-".repeat(maxLength + 20)}`);
-  console.log(`|(index)|Name${" ".repeat(maxLength - 4)}|`);
+  console.log(`|(index)|Name${" ".repeat(maxLength - 4)}|Type`);
 
   directories.forEach((directory) => {
     console.log(
@@ -121,4 +147,121 @@ function printFile(filename) {
 
 function prompt() {
   process.stdout.write(`${process.cwd()}>`);
+}
+
+function addFile(filename) {
+  fs.open(filename, "w", (err, file) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+function renameFile(oldName, newName) {
+  if (!oldName || !newName) {
+    console.log("insufficient parametrs");
+    return;
+  }
+  if (!fs.existsSync(oldName)) {
+    throw Error("no such file");
+  }
+  fs.rename(oldName, newName, (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+function copyFile(oldName, newPath) {
+  if (!oldName || !newPath) {
+    console.log("insufficient parametrs");
+    return;
+  }
+  const fileName = oldName.split("\\").slice(-1).toString();
+  if (!fs.existsSync(oldName)) {
+    throw Error("no such file");
+  }
+  fs.createReadStream(path.resolve(process.cwd(), oldName)).pipe(
+    fs.createWriteStream(path.resolve(newPath, fileName))
+  );
+}
+
+function moveFile(oldName, newPath) {
+  if (!oldName || !newPath) {
+    console.log("insufficient parametrs");
+    return;
+  }
+  const fileName = oldName.split("\\").slice(-1).toString();
+  const newFilePath = path.resolve(newPath, fileName);
+  const oldFilePath = path.resolve(process.cwd(), oldName);
+  if (!fs.existsSync(oldName)) {
+    throw Error("no such file");
+  }
+  const writableStream = fs.createWriteStream(newFilePath);
+  fs.createReadStream(oldFilePath).pipe(writableStream);
+  writableStream.on("finish", () => {
+    fs.unlink(oldFilePath, (err) => {
+      if (err) {
+        console.log(err);
+      }
+    });
+  });
+}
+
+function removeFile(filePath) {
+  fs.unlink(path.resolve(process.cwd(), filePath), (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+function osCommands(command) {
+  switch (command.slice(2)) {
+    case "EOL":
+      console.log(JSON.stringify(os.EOL));
+      break;
+    case "cpus":
+      getCpuInfo();
+      break;
+    case "homedir":
+      console.log(os.homedir());
+      break;
+    case "username":
+      console.log(os.userInfo().username);
+      break;
+    case "architecture":
+      console.log(os.arch());
+      break;
+    default:
+      break;
+  }
+}
+
+function getCpuInfo() {
+  const cpuInfo = os.cpus();
+  console.log(`CPUs amount ${cpuInfo.length}`);
+  cpuInfo.forEach(({ model, speed }, index) => {
+    console.log(`CPU No${index} Model:${model} Speed:${speed / 1000} GHz`);
+  });
+}
+
+function hashFile(filePath) {
+  const fileName = path.resolve(process.cwd(), filePath);
+  fs.readFile(fileName, (err, data) => {
+    const hash = crypto.createHash("sha256").update(data).digest("hex");
+    console.log(hash);
+    prompt();
+  });
+}
+function compressFile(filePath, destination) {
+  const inputStream = fs.createReadStream(
+    path.resolve(process.cwd(), filePath)
+  );
+  const zipStream = zlib.createBrotliCompress();
+  const outputStream = fs.createWriteStream(zippedFile);
+  pipeline(inputStream, zipStream, outputStream, (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
 }
