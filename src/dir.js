@@ -1,19 +1,19 @@
 import fs from "fs";
-import { promisify } from "util";
+import path from "path";
 export function changeDirectoryUp() {
   process.chdir("..");
 }
 export function changeDirectory(inputData) {
+  if (!inputData) {
+    console.log("insufficient parametrs");
+    return;
+  }
   if (inputData === "..") {
     changeDirectoryUp();
     return;
   }
   try {
-    if (inputData.startsWith("\\")) {
-      process.chdir(path.resolve(process.cwd(), inputData));
-    } else {
-      process.chdir(path.join(process.cwd(), inputData));
-    }
+    process.chdir(path.resolve(process.cwd(), inputData));
   } catch (e) {
     console.error(e);
   }
@@ -21,20 +21,20 @@ export function changeDirectory(inputData) {
 
 export async function dir() {
   fs.readdir(process.cwd(), async (err, files) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
     let filesList = [];
     let directories = [];
-    let isError = false;
     files.forEach(async (file, index) => {
       try {
         const stats = await fs.promises.stat(file);
         stats.isDirectory() ? directories.push(file) : filesList.push(file);
       } catch (e) {
-        console.log("no admin rights");
-        isError = true;
+        console.log("anable to read stats");
       }
-      if (isError) {
-        return;
-      }
+
       if (index === files.length - 1) {
         printLs(directories, filesList);
       }

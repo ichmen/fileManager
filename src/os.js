@@ -1,22 +1,27 @@
 import os from "os";
 export function osCommands(command) {
-  switch (command.slice(2)) {
+  if (!command) {
+    console.log("insufficient parametrs");
+    return;
+  }
+  switch (command) {
     case "EOL":
       console.log(JSON.stringify(os.EOL));
       break;
-    case "cpus":
+    case "--cpus":
       getCpuInfo();
       break;
-    case "homedir":
+    case "--homedir":
       console.log(os.homedir());
       break;
-    case "username":
+    case "--username":
       console.log(os.userInfo().username);
       break;
-    case "architecture":
+    case "--architecture":
       console.log(os.arch());
       break;
     default:
+      console.log("unknown command");
       break;
   }
 }

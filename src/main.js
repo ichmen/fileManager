@@ -14,11 +14,9 @@ import { exit } from "./exit.js";
 
 Object.entries(process.env).forEach(([name, value]) => {
   if (name === "HOMEPATH") {
-    console.log(value);
     process.chdir(value);
   }
 });
-// console.log(process.argv.slice(2));
 
 const args = process.argv.slice(2).toString().split("=")[1];
 console.log(`Welcome to the File Manager, ${args}!`);
@@ -30,12 +28,14 @@ process.stdin.on("data", (data) => {
   switch (inputData[0]) {
     case "up":
       changeDirectoryUp();
+      prompt();
       break;
     case ".exit":
       exit(args);
       break;
     case "cd":
       changeDirectory(inputData[1]);
+      prompt();
       break;
     case "ls":
       dir();
@@ -45,40 +45,46 @@ process.stdin.on("data", (data) => {
       break;
     case "add":
       addFile(inputData[1]);
+      prompt();
       break;
     case "rn":
       renameFile(inputData[1], inputData[2]);
+      prompt();
       break;
     case "cp":
       copyFile(inputData[1], inputData[2]);
+      prompt();
       break;
     case "mv":
       moveFile(inputData[1], inputData[2]);
+      prompt();
       break;
     case "rm":
       removeFile(inputData[1]);
+      prompt();
       break;
     case "os":
       osCommands(inputData[1]);
+      prompt();
       break;
     case "hash":
       hashFile(inputData[1]);
       break;
     case "compress":
       compressFile(inputData[1], inputData[2]);
+      prompt();
       break;
     case "decompress":
       decompressFile(inputData[1], inputData[2]);
+      prompt();
       break;
     default:
+      console.log("unknown command");
+      prompt();
       break;
   }
-  prompt();
 });
 process.on("SIGINT", () => {
+  console.log("");
   exit(args);
 });
-// function exit(userName) {
-//   console.log(`\nThank you for using File Manager, ${userName}, goodbye!`);
-//   process.exit();
-// }

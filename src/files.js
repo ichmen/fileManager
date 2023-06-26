@@ -1,14 +1,26 @@
 import fs from "fs";
+import { prompt } from "./dir.js";
+import path from "path";
 export function printFile(filename) {
+  if (!filename) {
+    console.log("insufficient parametrs");
+    return;
+  }
   const reader = fs.createReadStream(filename);
   reader
     .on("data", (chunk) => {
       process.stdout.write(chunk + "\n");
     })
-    .on("end", () => prompt());
+    .on("end", () => {
+      prompt();
+    });
 }
 
 export function addFile(filename) {
+  if (!filename) {
+    console.log("insufficient parametrs");
+    return;
+  }
   fs.open(filename, "w", (err, file) => {
     if (err) {
       console.log(err);
@@ -67,6 +79,10 @@ export function moveFile(oldName, newPath) {
 }
 
 export function removeFile(filePath) {
+  if (!filePath) {
+    console.log("insufficient parametrs");
+    return;
+  }
   fs.unlink(path.resolve(process.cwd(), filePath), (err) => {
     if (err) {
       console.log(err);

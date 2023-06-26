@@ -3,7 +3,10 @@ import { pipeline } from "stream";
 import path from "path";
 import fs from "fs";
 export function compressFile(filePath, destination) {
-  console.log(filePath.split("\\").slice(-1));
+  if (!filePath || !destination) {
+    console.log("insufficient parameters");
+    return;
+  }
   const zippedFile = filePath.split("\\").slice(-1).toString().split(".")[0];
   const inputStream = fs.createReadStream(
     path.resolve(process.cwd(), filePath)
@@ -20,6 +23,10 @@ export function compressFile(filePath, destination) {
 }
 
 export function decompressFile(fileName, decompressPath) {
+  if (!fileName || !decompressPath) {
+    console.log("insufficient parameters");
+    return;
+  }
   const inputStream = fs.createReadStream(
     path.resolve(process.cwd(), fileName)
   );
